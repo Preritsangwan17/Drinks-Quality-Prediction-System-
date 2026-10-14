@@ -5,21 +5,25 @@
 # Drinks Quality Prediction
 
 A command-line machine-learning baseline for **regression**, with reproducible training, held-out evaluation,
-model serialization and batch prediction. The repository includes a checksum-verified UCI dataset downloader, inspected real-data evaluation
-records, and software tests.
+model serialization and batch prediction. It includes an official UCI dataset downloader with checksum
+verification, real-data evaluation records and software tests.
 
 **Status:** reproducible research baseline, evaluated separately on UCI red and white wine data.
+
+
+[Quick start](#quick-start) · [Results](#reproduced-uci-evaluation) · [Dataset](data/README.md) · [Model card](docs/MODEL_CARD.md) · [Contributing](CONTRIBUTING.md)
 
 ## What it does
 
 The pipeline compares a median DummyRegressor with a Random Forest regressor, selects by lowest
 validation MAE, then reports test MAE, RMSE and R². Quality is treated as numeric regression: predictions
 are continuous scores. Comma and semicolon CSVs are accepted; all feature columns must be numeric.
-Missing features are median-imputed using training data only.
+Missing numeric measurements are median-imputed using training data only. Required feature columns
+must be present during prediction.
 
 Both experiments use seed 42 and 60% training / 20% validation / 20% test partitions after deduplication.
-The selected model remains fitted on the training partition so the validation operating point remains
-consistent with evaluation. Training writes an artifact and an adjacent `.metrics.json` report.
+The selected model remains fitted on the training partition. Test rows are reserved for the final
+benchmark and do not influence model selection. Training writes an artifact and an adjacent `.metrics.json` report.
 
 ## Quick start
 
@@ -54,8 +58,8 @@ predictor evaluated on the same held-out test rows.
 
 | Dataset | Selected model | Test MAE | Median baseline MAE | Test RMSE | Test R² |
 |---|---|---:|---:|---:|---:|
-| Red wine | random forest | 0.4652 | 0.7022 | 0.6238 | 0.4507 |
-| White wine | random forest | 0.5696 | 0.6482 | 0.7362 | 0.3391 |
+| Red wine | Random Forest | 0.4652 | 0.7022 | 0.6238 | 0.4507 |
+| White wine | Random Forest | 0.5696 | 0.6482 | 0.7362 | 0.3391 |
 
 MAE and RMSE are in wine-quality score points; smaller is better. R² is dimensionless. Inspect
 [red-wine results](reports/red_wine.metrics.json) and [white-wine results](reports/white_wine.metrics.json)
