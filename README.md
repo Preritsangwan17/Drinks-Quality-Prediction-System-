@@ -5,11 +5,10 @@
 # Drinks Quality Prediction
 
 A command-line machine-learning baseline for **regression**, with reproducible training, held-out evaluation,
-model serialization and batch prediction. Previously an empty project scaffold; the repository now
-contains an implemented baseline and software tests.
+model serialization and batch prediction. The repository includes a checksum-verified UCI dataset downloader, inspected real-data evaluation
+records, and software tests.
 
-**Status:** baseline implementation. No real-data model performance is claimed. A verified training
-dataset and dataset-specific evaluation are still required.
+**Status:** reproducible research baseline, evaluated separately on UCI red and white wine data.
 
 ## What it does
 
@@ -35,16 +34,33 @@ python -m pip install -r requirements.txt
 python app.py --help
 ```
 
-Add the documented CSV locally, then run:
+Download the official UCI data, then train and score the included example:
 
 ```bash
-python app.py train --data data/winequality-red.csv
-python app.py predict --input data/new_records.csv --output artifacts/predictions.csv
+python scripts/download_data.py
+python app.py train --data data/winequality-red.csv --output artifacts/red_wine.joblib
+python app.py predict --input examples/wine_transactions.csv --model artifacts/red_wine.joblib --output artifacts/predictions.csv
 ```
 
 The prediction CSV must contain the training feature columns; its target is optional.
 Generated models, metrics and predictions live in `artifacts/` and are ignored by Git.
 Only load serialized models from trusted sources.
+
+## Reproduced UCI evaluation
+
+Seed 42, scikit-learn 1.6.1, NumPy 1.26.4 and pandas 2.3.3. Both datasets use the same predefined
+60/20/20 workflow, with model selection on validation MAE only. The test baseline is the training-median
+predictor evaluated on the same held-out test rows.
+
+| Dataset | Selected model | Test MAE | Median baseline MAE | Test RMSE | Test R² |
+|---|---|---:|---:|---:|---:|
+| Red wine | random forest | 0.4652 | 0.7022 | 0.6238 | 0.4507 |
+| White wine | random forest | 0.5696 | 0.6482 | 0.7362 | 0.3391 |
+
+MAE and RMSE are in wine-quality score points; smaller is better. R² is dimensionless. Inspect
+[red-wine results](reports/red_wine.metrics.json) and [white-wine results](reports/white_wine.metrics.json)
+for fingerprints, row counts and runtime versions. These row-split benchmarks do not establish
+performance on a new producer, vintage, wine type or future collection.
 
 ## Repository guide
 
@@ -70,12 +86,16 @@ They do not establish real-world model accuracy. See [contribution guidance](CON
 
 Predicts the sensory-quality score of wine from numeric physicochemical measurements. It does not assess every drink, certify safety or replace laboratory testing.
 
-Before claiming predictive performance, document the data source and license, inspect missing values,
-duplicate entities and leakage, choose a temporal or grouped split if needed, and publish a real-data
-report alongside a simple baseline. Random row splitting is only an initial experiment. Add calibrated
-scores or interval estimates where the application requires them.
+Dataset provenance and exact fingerprints are recorded in [data/README.md](data/README.md).
+Use a producer-grouped or time-based evaluation when those identifiers are available. Interval estimates
+and independent external validation remain development priorities.
 
 ## License and author
 
 Code is covered by the existing [MIT license](LICENSE). Dataset terms are separate.
 Built by [Prerit Sangwan](https://github.com/Preritsangwan17), B.Tech CSE (AI/ML).
+
+## Model documentation
+
+See the [model card](docs/MODEL_CARD.md) for the intended use, input contract, evaluation method and limitations.
+For the recorded numerical environment, install `requirements-repro.txt` in a fresh virtual environment.

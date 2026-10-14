@@ -1,0 +1,37 @@
+{
+  "selected_model": "random_forest",
+  "data_sha256": "76c3f809815c17c07212622f776311faeb31e87610d52c26d87d6e361b169836",
+  "features": [
+    "fixed acidity",
+    "volatile acidity",
+    "citric acid",
+    "residual sugar",
+    "chlorides",
+    "free sulfur dioxide",
+    "total sulfur dioxide",
+    "density",
+    "pH",
+    "sulphates",
+    "alcohol"
+  ],
+  "environment": {
+    "numpy": "1.26.4",
+    "pandas": "2.3.3",
+    "scikit_learn": "1.6.1"
+  },
+  "test_baseline_mae": 0.648171500630517,
+  "validation_mae": {
+    "median_baseline": 0.6287878787878788,
+    "random_forest": 0.5508781310580554
+  },
+  "test_mae": 0.5696132460435739,
+  "test_rmse": 0.7362152459613545,
+  "test_r2": 0.33911097373732213,
+  "seed": 42,
+  "split_rows": {
+    "train": 2376,
+    "validation": 792,
+    "test": 793
+  },
+  "scikit_learn_version": "1.6.1"
+}

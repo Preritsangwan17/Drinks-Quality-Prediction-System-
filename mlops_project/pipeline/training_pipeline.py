@@ -2,6 +2,7 @@
 
 import argparse
 import json
+import hashlib
 from pathlib import Path
 import joblib
 import numpy as np
@@ -15,12 +16,18 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 
 
+def read_csv(path):
+    """UCI exports semicolon CSV; standard batch input uses commas, including single-feature files."""
+    with Path(path).open(encoding="utf-8-sig") as handle:
+        header = handle.readline()
+    separator = ";" if ";" in header and "," not in header else ","
+    return pd.read_csv(path, sep=separator)
+
+
 def read_features(path, training=False):
-    frame = (
-        pd.read_csv(path, sep=None, engine="python").drop_duplicates()
-        if training
-        else pd.read_csv(path, sep=None, engine="python")
-    )
+    frame = read_csv(path)
+    if training:
+        frame = frame.drop_duplicates()
     if frame.empty:
         raise ValueError("CSV has no rows")
     if training and "quality" not in frame:
@@ -69,8 +76,19 @@ def train(data, output):
         errors[name] = float(mean_absolute_error(val_y, model.predict(val_X)))
     best = min(errors, key=errors.get)
     prediction = models[best].predict(test_X)
+    baseline_prediction = models["median_baseline"].predict(test_X)
+    with Path(data).open("rb") as handle:
+        fingerprint = hashlib.file_digest(handle, "sha256").hexdigest()
     metrics = {
         "selected_model": best,
+        "data_sha256": fingerprint,
+        "features": X.columns.tolist(),
+        "environment": {
+            "numpy": np.__version__,
+            "pandas": pd.__version__,
+            "scikit_learn": sklearn.__version__,
+        },
+        "test_baseline_mae": float(mean_absolute_error(test_y, baseline_prediction)),
         "validation_mae": errors,
         "test_mae": float(mean_absolute_error(test_y, prediction)),
         "test_rmse": float(root_mean_squared_error(test_y, prediction)),
@@ -98,7 +116,7 @@ def predict(data, model_path, output):
     missing = set(saved["features"]) - set(X)
     if missing:
         raise ValueError(f"Missing feature columns: {sorted(missing)}")
-    result = pd.read_csv(data, sep=None, engine="python")
+    result = read_csv(data)
     result["predicted_quality"] = saved["model"].predict(X[saved["features"]])
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
